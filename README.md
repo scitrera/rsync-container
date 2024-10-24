@@ -14,7 +14,7 @@ synchronization workflows.
 To use the rsync container, run it with your desired `rsync` arguments. Here is a basic example:
 
 ```bash
-docker run --rm ghcr.io/scitrera/rsync <your-rsync-args>
+podman run --rm ghcr.io/scitrera/rsync <your-rsync-args>
 ```
 
 By default, the entrypoint script (`/opt/rsync.sh`) simply passes through the provided arguments to `rsync`.
@@ -32,14 +32,15 @@ The container behavior can be modified using the following environment variables
 
 - **`RECURRING_WATCH`**: A colon-separated list of paths to watch for changes. If set, the `/opt/rsync.sh` script enters
   a loop that runs `inotifywait`, followed by `rsync`, and then `sleep`. This continues indefinitely until a SIGINT or
-  SIGTERM signal is received. This setup is ideal for keeping files in sync while changes occur.
+  SIGTERM signal is received.
 
 - **`INOTIFY_EVENTS`**: A comma-separated list of events for `inotifywait` to listen for. Defaults
   to `"modify,create,delete,move"` if not specified. This variable is only relevant if `RECURRING_WATCH` is set. To
   disable `inotifywait` while continuing the loop, use the value `"-"`.
 
 - **`SLEEP_DELAY`**: The number of seconds to sleep between loop iterations when `RECURRING_WATCH` is set. This can help
-  manage the frequency of `rsync` runs, adding a delay between sync operations.
+  manage the frequency of `rsync` runs, adding a delay between sync operations. Note that there is no default
+  for `SLEEP_DELAY` and there will be no delay if not set.
 
 ## Example Commands
 
@@ -51,7 +52,7 @@ To perform a simple file synchronization with `rsync` using this container:
 docker run --rm \
   -v /source/path:/source:ro \
   -v /destination/path:/destination \
-  ghcr.io/scitrera/rsync /source/ /destination/
+  ghcr.io/scitrera/rsync --itemize-changes /source/* /destination/
 ```
 
 ### Recurring Sync with File Monitoring
@@ -64,11 +65,12 @@ docker run --rm \
   -v /destination/path:/destination \
   -e RECURRING_WATCH="/source" \
   -e SLEEP_DELAY="5" \
-  ghcr.io/scitrera/rsync /source/ /destination/
+  ghcr.io/scitrera/rsync --itemize-changes /source/* /destination/
 ```
 
 In this example, the container will use `inotifywait` to monitor `/source` for modifications, and synchronize changes
-to `/destination` every time an event occurs.
+to `/destination` every time an event occurs. Glob syntax will be expanded by the shell (which is still OK in the
+recurring sync scenario because the glob expression is re-evaluated at each `rsync` run).
 
 ## Signals and Graceful Shutdown
 
@@ -78,13 +80,14 @@ these signals ensure that the current `rsync` operation completes before the con
 ## Return Codes
 
 The default behavior is to consider `rsync` return codes `0` and `23` as successful runs. You can modify this by
-setting `ALLOWED_RETURN_CODES` to include additional return codes based on your requirements.
+setting `ALLOWED_RETURN_CODES` to include additional (or fewer) return codes based on your requirements.
 
 ## Container Registry
 
 The container is available at the following registry:
 
-- **GitHub Container Registry**: [ghcr.io/scitrera/rsync](https://github.com/scitrera/rsync)
+- **GitHub Container Registry
+  **: [ghcr.io/scitrera/rsync](https://github.com/scitrera/rsync-container/pkgs/container/rsync)
 
 ## Contributing
 
@@ -98,5 +101,5 @@ This project is licensed under the 3-clause BSD License.
 ## Support
 
 If you encounter any issues or need help, please open an issue on
-the [GitHub repository](https://github.com/scitrera/rsync).
+the [GitHub repository](https://github.com/scitrera/rsync-container).
 
