@@ -86,8 +86,8 @@ setting `ALLOWED_RETURN_CODES` to include additional (or fewer) return codes bas
 
 The container is available at the following registry:
 
-- **GitHub Container Registry
-  **: [ghcr.io/scitrera/rsync](https://github.com/scitrera/rsync-container/pkgs/container/rsync)
+- **GitHub Container Registry**:
+  [ghcr.io/scitrera/rsync](https://github.com/scitrera/rsync-container/pkgs/container/rsync)
 
 ## Contributing
 
